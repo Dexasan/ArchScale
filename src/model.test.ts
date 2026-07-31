@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import {defaults, estimate} from "./model.ts";
+import {defaults, estimate, normalizeWorkload} from "./model.ts";
 
 test("derives peak throughput from active users and traffic shape", () => {
   const result = estimate({...defaults, monthlyUsers: 100_000, dailyActivePct: 10, requestsPerUser: 86.4, peakMultiplier: 4});
@@ -24,4 +24,17 @@ test("critical availability provisions additional database replicas", () => {
 test("high read pressure produces a cache recommendation", () => {
   const result = estimate({...defaults, monthlyUsers: 10_000_000, readPct: 95});
   assert.ok(result.warnings.some(warning => warning.includes("cache")));
+});
+
+test("normalizes untrusted shared scenarios against supported ranges", () => {
+  const result = normalizeWorkload({
+    monthlyUsers: -1,
+    dailyActivePct: 55,
+    regions: "three",
+    availability: "impossible",
+  });
+  assert.equal(result.monthlyUsers, defaults.monthlyUsers);
+  assert.equal(result.dailyActivePct, 55);
+  assert.equal(result.regions, defaults.regions);
+  assert.equal(result.availability, defaults.availability);
 });

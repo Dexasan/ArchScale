@@ -1,5 +1,5 @@
 import {useMemo, useState, type CSSProperties} from "react";
-import {compact, defaults, estimate, money, type Workload} from "./model";
+import {compact, defaults, estimate, money, normalizeWorkload, type Workload} from "./model";
 
 type NumberKey = Exclude<keyof Workload, "availability">;
 type Field = {key:NumberKey; question:string; help:string; min:number; max:number; step:number; format:(n:number)=>string};
@@ -79,4 +79,4 @@ function Control({field,value,update}:{field:Field;value:number;update:(key:Numb
   return <label className="control"><div className="control-copy"><div><b>{field.question}</b><small>{field.help}</small></div><output>{field.format(value)}</output></div><input style={style} aria-label={field.question} type="range" min={field.min} max={field.max} step={field.step} value={value} onInput={event=>change(event.currentTarget)} onChange={event=>change(event.currentTarget)}/><div className="range-labels"><span>{field.format(field.min)}</span><span>{field.format(field.max)}</span></div></label>;
 }
 function BuildItem({icon,value,label,explanation}:{icon:string;value:string|number;label:string;explanation:string}) {return <div className="build-item"><i>{icon}</i><div><strong>{value} {label}</strong><span>{explanation}</span></div></div>}
-function readScenario():Workload {try{const value=new URLSearchParams(location.search).get("scenario");return value?{...defaults,...JSON.parse(atob(value))}:defaults}catch{return defaults}}
+function readScenario():Workload {try{const value=new URLSearchParams(location.search).get("scenario");return value?normalizeWorkload(JSON.parse(atob(value))):defaults}catch{return defaults}}

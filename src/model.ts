@@ -40,6 +40,35 @@ export const defaults: Workload = {
   availability: "high",
 };
 
+type NumericWorkloadKey = Exclude<keyof Workload, "availability">;
+const workloadRanges: Record<NumericWorkloadKey, readonly [number, number]> = {
+  monthlyUsers: [10_000, 10_000_000],
+  dailyActivePct: [1, 100],
+  requestsPerUser: [1, 500],
+  peakMultiplier: [1, 12],
+  readPct: [10, 99],
+  responseKb: [1, 256],
+  storageKb: [1, 500],
+  retentionMonths: [1, 60],
+  regions: [1, 5],
+};
+
+export function normalizeWorkload(value: unknown): Workload {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return {...defaults};
+  const candidate = value as Record<string, unknown>;
+  const normalized = {...defaults};
+  for (const [key, [minimum, maximum]] of Object.entries(workloadRanges) as [NumericWorkloadKey, readonly [number, number]][]) {
+    const input = candidate[key];
+    if (typeof input === "number" && Number.isFinite(input) && input >= minimum && input <= maximum) {
+      normalized[key] = input;
+    }
+  }
+  if (candidate.availability === "standard" || candidate.availability === "high" || candidate.availability === "critical") {
+    normalized.availability = candidate.availability;
+  }
+  return normalized;
+}
+
 export function estimate(input: Workload): Estimate {
   const dailyActiveUsers = input.monthlyUsers * input.dailyActivePct / 100;
   const dailyRequests = dailyActiveUsers * input.requestsPerUser;
