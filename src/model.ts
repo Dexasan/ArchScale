@@ -52,6 +52,7 @@ const workloadRanges: Record<NumericWorkloadKey, readonly [number, number]> = {
   retentionMonths: [1, 60],
   regions: [1, 5],
 };
+const discreteWorkloadKeys = new Set<NumericWorkloadKey>(["monthlyUsers", "retentionMonths", "regions"]);
 
 export function normalizeWorkload(value: unknown): Workload {
   if (!value || typeof value !== "object" || Array.isArray(value)) return {...defaults};
@@ -59,7 +60,8 @@ export function normalizeWorkload(value: unknown): Workload {
   const normalized = {...defaults};
   for (const [key, [minimum, maximum]] of Object.entries(workloadRanges) as [NumericWorkloadKey, readonly [number, number]][]) {
     const input = candidate[key];
-    if (typeof input === "number" && Number.isFinite(input) && input >= minimum && input <= maximum) {
+    if (typeof input === "number" && Number.isFinite(input) && input >= minimum && input <= maximum &&
+        (!discreteWorkloadKeys.has(key) || Number.isInteger(input))) {
       normalized[key] = input;
     }
   }

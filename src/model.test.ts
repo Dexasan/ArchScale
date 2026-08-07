@@ -38,3 +38,10 @@ test("normalizes untrusted shared scenarios against supported ranges", () => {
   assert.equal(result.regions, defaults.regions);
   assert.equal(result.availability, defaults.availability);
 });
+
+test("rejects fractional values for discrete workload fields", () => {
+  const result = normalizeWorkload({monthlyUsers: 10_000.5, retentionMonths: 12.5, regions: 2.5});
+  assert.equal(result.monthlyUsers, defaults.monthlyUsers);
+  assert.equal(result.retentionMonths, defaults.retentionMonths);
+  assert.equal(result.regions, defaults.regions);
+});
